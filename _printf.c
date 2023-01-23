@@ -1,78 +1,44 @@
-#include <stdarg.h>
-#include <string.h>
-#include <stdlib.h>
 #include "main.h"
 /**
-  * find_function - function that finds formats for _printf
-  * calls the corresponding function.
-  * @format: format (char, string, int, decimal)
-  * Return: NULL or function associated ;
-  */
-int (*find_function(const char *format))(va_list)
+ * _printf - is a function prints based on provided format.
+ * @format: identifier to look for.
+ * Return: the length of the string.
+ */
+int _printf(const char * const format, ...)
 {
-	unsigned int p = 0;
-	code_f find_f[] = {
-		{"c", print_char},
-		{"s", print_string},
-		{"i", print_int},
-		{"d", print_dec},
-		{"r", print_rev},
-		{"b", print_bin},
-		{"u", print_unsig},
-		{"o", print_octal},
-		{"x", print_x},
-		{"X", print_X},
-		{"R", print_rot13},
-		{NULL, NULL}
+	convert_match m[] = {
+		{"%s", printf_string}, {"%c", printf_char},
+		{"%%", printf_37},
+		{"%i", printf_int}, {"%d", printf_dec}, {"%r", printf_srev},
+		{"%R", printf_rot13}, {"%b", printf_bin}, {"%u", printf_unsigned},
+		{"%o", printf_oct}, {"%x", printf_hex}, {"%X", printf_HEX},
+		{"%S", printf_exclusive_string}, {"%p", printf_pointer}
 	};
-	while (find_f[p].sc)
-	{
-		if (find_f[p].sc[0] == (*format))
-			return (find_f[p].f);
-		p++;
-	}
-	return (NULL);
-}
-/**
-  * _printf - function gives output according to a format.
-  * @format: format (char, string, int, decimal)
-  * Return: size the output
-  */
-int _printf(const char *format, ...)
-{
-	va_list ap;
-	int (*f)(va_list);
-	unsigned int p = 0, printcount = 0;
 
-	if (format == NULL)
+	va_list args;
+	int mi = 0, ji, len = 0;
+
+	va_start(args, format);
+	if (format == NULL || (format[0] == '%' && format[1] == '\0'))
 		return (-1);
-	va_start(ap, format);
-	while (format[p])
+Here:
+	while (format[mi] != '\0')
 	{
-		while (format[p] != '%' && format[p])
+		ji = 13;
+		while (ji >= 0)
 		{
-			_putchar(format[p]);
-			printcount++;
-			p++;
+			if (m[ji].id[0] == format[mi] && m[ji].id[1] == format[mi + 1])
+			{
+				len += m[ji].f(args);
+				mi = mi + 2;
+				goto Here;
+			}
+			ji--;
 		}
-		if (format[p] == '\0')
-			return (printcount);
-		f = find_function(&format[p + 1]);
-		if (f != NULL)
-		{
-			printcount += f(ap);
-			p += 2;
-			continue;
-		}
-		if (!format[p + 1])
-			return (-1);
-		_putchar(format[p]);
-		printcount++;
-		if (format[p + 1] == '%')
-			p += 2;
-		else
-			p++;
+		_putchar(format[mi]);
+		len++;
+		mi++;
 	}
-	va_end(ap);
-	return (printcount);
+	va_end(args);
+	return (len);
 }
